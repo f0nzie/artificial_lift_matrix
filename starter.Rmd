@@ -68,6 +68,10 @@ unique(al_matrix_tidy$al_method)
 unique(al_matrix_tidy$ranking)
 ```
 
+```{r}
+unique(al_matrix_tidy$design_aspect)
+```
+
 
 ### subsetting looks good
 
