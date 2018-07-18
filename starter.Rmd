@@ -1,0 +1,160 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(gcookbook) # For the data set
+tophit <- tophitters2001[1:25, ] # Take the top 25 from the tophitters data set
+
+ggplot(tophit, aes(x=avg, y=name)) + geom_point()
+```
+
+```{r}
+str(tophit)
+```
+
+
+```{r rows.print=25}
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+xls_file <- "Artificial Lift Matrix for Commercial Production Systems (CPS)14Aug062.xlsx"
+
+al_matrix <- read_excel(path = file.path('inst/extdata', xls_file), 
+                        skip = 4, range = "C5:P61") %>% 
+    rename(design_aspect = "Design Aspect")
+al_matrix
+```
+
+
+```{r}
+
+
+ggplot(al_matrix, aes(x = Jet, y = design_aspect)) +
+    geom_point()
+
+```
+
+# Gather
+
+```{r}
+al_matrix_tidy <- al_matrix %>% 
+    gather(key = 'al_method', value = "ranking", Jet:'Chamber Lift') %>% 
+    mutate(ranking = as.integer(ranking)) %>% 
+    mutate(ranking = ifelse(is.na(ranking), 0, ranking)) %>% 
+    mutate(relevance = case_when(
+        .$al_method %in% c("ESP", "Gas Lift", "Sucker Rod Pump", "PCP") ~ "high",
+        .$al_method %in% c("Jet", "ESP-CP", "Sucker Rod Pump", "PCP", "HSP") ~ "low",
+        .$al_method %in% c("Metal PCP (Hi Temp)", "HGP", 
+                           "Twin Screw (ESTSP)", "Twin Screw (TDTSP)", "Chamber Lift") ~ "specialty"
+    )) %>% 
+    mutate(relevance = as.factor(relevance)) %>% 
+    mutate(ranking = as.factor(ranking)) %>% 
+    print
+
+al_matrix_tidy_orig <- al_matrix_tidy
+```
+
+```{r}
+unique(al_matrix_tidy$al_method)
+```
+
+```{r}
+unique(al_matrix_tidy$ranking)
+```
+
+
+### subsetting looks good
+
+```{r}
+ggplot(subset(al_matrix_tidy, design_aspect == "Well Number" & Value == "< 25", ), 
+       aes(x = al_method, y = ranking)) +
+    geom_point() +
+    coord_flip()
+```
+
+
+```{r}
+ggplot(subset(al_matrix_tidy, design_aspect == "GOR (scf/bbl)" & Value == "< 500", ), 
+       aes(x = al_method, y = ranking)) +
+    geom_point() +
+    coord_flip()
+```
+
+## Using segments
+
+```{r}
+ggplot(subset(al_matrix_tidy, design_aspect == "GOR (scf/bbl)" & Value == "< 500", ), 
+       aes(x = ranking, y = al_method)) +
+    geom_segment(aes(yend=al_method), xend=0, color = "grey50") +
+    geom_point(size = 3, aes(colour = "blue")) +
+    scale_colour_brewer(palette="Set1") +
+    theme_bw() +
+    theme(panel.grid.major.y = element_blank() , legend.position = "none")   # No horizontal grid lines
+
+```
+
+```{r}
+al_matrix_tidy <- al_matrix_tidy_orig
+
+nameorder <- make.unique(al_matrix_tidy$al_method[order(al_matrix_tidy$relevance, al_matrix_tidy$ranking)])
+
+al_matrix_tidy$al_method <- factor(al_matrix_tidy$al_method, levels=nameorder)
+
+ggplot(subset(al_matrix_tidy, design_aspect == "GOR (scf/bbl)" & Value == "< 500"),
+       aes(x = ranking, y = al_method)) +
+    geom_segment(aes(yend=al_method), xend=0, color = "grey50") +
+    geom_point(size = 3, aes(colour = relevance)) +
+    # scale_x_discrete(limits = c(0, 3)) 
+    scale_colour_brewer(palette="Set1", limits=c("specialty","low", "high")) +
+    theme_bw() +
+    theme(panel.grid.major.y = element_blank(),   # No horizontal grid lines
+          legend.position=c(1, 0.55),             # Put legend inside plot area
+          legend.justification=c(1, 0.5)) +
+    scale_x_discrete(expand=c(0,1))
+    
+```
+
+```{r}
+al_matrix_tidy <- al_matrix_tidy_orig
+
+nameorder <- make.unique(al_matrix_tidy$al_method[order(al_matrix_tidy$relevance, al_matrix_tidy$ranking)])
+
+al_matrix_tidy$al_method <- factor(al_matrix_tidy$al_method, levels=nameorder, 
+                                   ordered = TRUE)
+
+ggplot(subset(al_matrix_tidy, design_aspect == "GOR (scf/bbl)" & Value == "> 2000"),
+       aes(x = ranking, y = al_method)) +
+    geom_segment(aes(yend=al_method), xend=0, color = "grey50") +
+    geom_point(size = 3, aes(colour = relevance)) +
+    scale_colour_brewer(palette="Set1", limits=c("specialty","low", "high")) +
+    theme_bw() +
+    theme(panel.grid.major.y = element_blank()) +   # No horizontal grid lines
+    facet_grid(relevance ~ ., scales="free_y", space="free_y")
+```
+
+
+### doesn't look good
+
+```{r}
+ggplot(al_matrix_tidy, 
+       aes(x = al_method, y = ranking)) +
+    geom_point() +
+    coord_flip() +
+    facet_grid(design_aspect ~ Value)
+
+```
+
+### doesn't look good either
+
+```{r}
+ggplot(al_matrix_tidy, aes(x = Variable, y = ranking)) +
+    geom_point() +
+    facet_grid(design_aspect ~ al_method)
+```
+
+
+HGP: http://www.alrdc.com/technicallibrary/ArticleDetails.aspx?ArticleId=1083
