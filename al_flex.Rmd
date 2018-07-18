@@ -1,0 +1,89 @@
+---
+title: "Untitled"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny    
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+```
+
+
+```{r rows.print=25}
+library(readxl)
+library(writexl)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+xls_file <- "Artificial Lift Matrix for Commercial Production Systems (CPS)14Aug062.xlsx"
+
+al_matrix <- read_excel(path = file.path('inst/extdata', xls_file), 
+                        skip = 4, range = "C5:P61") %>% 
+    rename(design_aspect = "Design Aspect")
+
+
+al_matrix_tidy <- al_matrix %>% 
+    gather(key = 'al_method', value = "ranking", Jet:'Chamber Lift') %>% 
+    mutate(ranking = as.integer(ranking)) %>% 
+    mutate(ranking = ifelse(is.na(ranking), 0, ranking)) %>% 
+    mutate(relevance = case_when(
+        .$al_method %in% c("ESP", "Gas Lift", "Sucker Rod Pump", "PCP") ~ "high",
+        .$al_method %in% c("Jet", "ESP-CP", "Sucker Rod Pump", "PCP", "HSP") ~ "low",
+        .$al_method %in% c("Metal PCP (Hi Temp)", "HGP", 
+                           "Twin Screw (ESTSP)", "Twin Screw (TDTSP)", "Chamber Lift") ~ "specialty"
+    )) %>% 
+    mutate(relevance = as.factor(relevance)) %>% 
+    mutate(ranking = as.factor(ranking))
+
+write_xlsx(al_matrix_tidy, path = file.path('inst/extdata', "al_matrix_tidy.xlsx"))
+al_matrix_tidy_orig <- al_matrix_tidy
+```
+
+
+# Artificial Lift Matrix
+
+## Sidebar {.sidebar}
+
+
+```{r}
+# selectInput("design_aspect", "Design Aspect of the AL",
+#     c("Well Number",                     "Production Rate (bpd)",          
+#      "Well Depth (ft)",                 "Operating Temp (degF)",          
+#      "Casing Size",                     "Well Inclination",               
+#      "Dogleg Severity",                 "Safety Barriers",                
+#      "Flowing Pressure (psi)",          "Reservoir access",               
+#      "Completion",                      "Adaptable",                      
+#      "Recovery",                        "Water cut (%)",                  
+#      "Fluid viscosity (cp)",            "Sand (ppm)",                     
+#      "GOR (scf/bbl)",                   "Corrosion Handling",             
+#      "Flow assurance",                  "Chem Injection",                 
+#      "Well Service",                    "Environmental",                  
+#      "Operating cost (low)",            "Relative Intervention Frequency")
+# ) 
+
+selectInput("design_aspect", "Design Aspect of the AL", 
+            choices = unique(al_matrix_tidy$design_aspect))
+
+# selectInput("value", "Value to evaluate",
+            # choices = rownames(al_matrix_tidy)[al_matrix_tidy$Value %in% input$design_aspect])
+
+renderUI({
+selectInput("value", "Value to evaluate",
+            choices = rownames(al_matrix_tidy)[al_matrix_tidy$Value %in% input$design_aspect])
+})
+
+observe({
+    aspect <- input$design_aspect
+    updateSelectInput(session, "value", 
+                      choices = al_matrix_tidy$Value[al_matrix_tidy$design_aspect == aspect])
+})    
+```
+
+
+## 
+
+### Plot
