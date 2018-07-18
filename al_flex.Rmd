@@ -19,10 +19,11 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 
+
 xls_file <- "Artificial Lift Matrix for Commercial Production Systems (CPS)14Aug062.xlsx"
 
 al_matrix <- read_excel(path = file.path('inst/extdata', xls_file), 
-                        skip = 4, range = "C5:P61") %>% 
+                        skip = 4, range = "C5:P63") %>% 
     rename(design_aspect = "Design Aspect")
 
 
@@ -46,39 +47,25 @@ al_matrix_tidy_orig <- al_matrix_tidy
 
 # Artificial Lift Matrix
 
-## Sidebar {.sidebar}
-
+## Sidebar {.sidebar data-width="350"}
 
 ```{r}
-# selectInput("design_aspect", "Design Aspect of the AL",
-#     c("Well Number",                     "Production Rate (bpd)",          
-#      "Well Depth (ft)",                 "Operating Temp (degF)",          
-#      "Casing Size",                     "Well Inclination",               
-#      "Dogleg Severity",                 "Safety Barriers",                
-#      "Flowing Pressure (psi)",          "Reservoir access",               
-#      "Completion",                      "Adaptable",                      
-#      "Recovery",                        "Water cut (%)",                  
-#      "Fluid viscosity (cp)",            "Sand (ppm)",                     
-#      "GOR (scf/bbl)",                   "Corrosion Handling",             
-#      "Flow assurance",                  "Chem Injection",                 
-#      "Well Service",                    "Environmental",                  
-#      "Operating cost (low)",            "Relative Intervention Frequency")
-# ) 
-
 selectInput("design_aspect", "Design Aspect of the AL", 
             choices = unique(al_matrix_tidy$design_aspect))
 
-# selectInput("value", "Value to evaluate",
-            # choices = rownames(al_matrix_tidy)[al_matrix_tidy$Value %in% input$design_aspect])
+# renderUI({
+# selectInput("value", "Value of the Design Aspect to evaluate",
+#             choices = rownames(al_matrix_tidy)[al_matrix_tidy$Value %in% input$design_aspect])
+# })
 
 renderUI({
-selectInput("value", "Value to evaluate",
-            choices = rownames(al_matrix_tidy)[al_matrix_tidy$Value %in% input$design_aspect])
+selectInput("value", "Value of the Design Aspect to evaluate",
+            choices = al_matrix_tidy$Value[al_matrix_tidy$design_aspect == levels(al_matrix_tidy$design_aspect)[1]])
 })
 
 observe({
     aspect <- input$design_aspect
-    updateSelectInput(session, "value", 
+    updateSelectInput("value", 
                       choices = al_matrix_tidy$Value[al_matrix_tidy$design_aspect == aspect])
 })    
 ```
@@ -87,3 +74,30 @@ observe({
 ## 
 
 ### Plot
+
+```{r warning=FALSE, message=FALSE, error=FALSE}
+al_matrix_tidy <- al_matrix_tidy_orig
+
+nameorder <- make.unique(al_matrix_tidy$al_method[order(al_matrix_tidy$relevance, al_matrix_tidy$ranking)])
+    
+al_matrix_tidy$al_method <- factor(al_matrix_tidy$al_method, levels=nameorder)
+
+shiny::renderPlot({
+    # .design_aspect <- input$design_aspect
+    # .Value <- input$value
+    
+    df <- subset(al_matrix_tidy, 
+                 design_aspect == input$design_aspect & Value == input$value )
+    
+    ggplot(df, aes(x = ranking, y = al_method)) +
+        geom_segment(aes(yend=al_method), xend=0, color = "grey50") +
+        geom_point(size = 3, aes(colour = relevance)) +
+        scale_colour_brewer(palette="Set1", limits=c("specialty","low", "high")) +
+        theme_bw() +
+        theme(panel.grid.major.y = element_blank()) +   # No horizontal grid lines
+        facet_grid(relevance ~ ., scales="free_y", space="free_y") +
+        ggtitle(paste0("by ", input$design_aspect, " when " , input$value))
+    
+})
+```
+
