@@ -1,0 +1,101 @@
+---
+title: "Power ranking for mtcars"
+runtime: shiny
+output:
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    source_code: embed
+---
+
+
+
+```{r rows.print = 25}
+library(dplyr)
+library(ggplot2)
+
+mtcars_tidy <- mtcars %>% 
+    tibble::rownames_to_column() %>% 
+    rename(model = rowname) %>% 
+    mutate(brand = gsub( " .*$", "", model )) %>% 
+    mutate(model = model) %>% 
+    select(brand, model,  everything())  %>% 
+    tidyr::gather(key = 'measure', value = "value", mpg:carb) %>%
+    mutate(ranking = as.factor(sample(x = c(1, 2, 3), size = n(), replace = TRUE))) %>%
+    
+    mutate(power = case_when(
+        .$measure == "hp" & value > 200 | (.$measure == "cyl" & value == 8) ~ "high",
+        .$measure == "hp" & value < 200 | (.$measure == "cyl" & value == 8) ~ "medium",
+        .$measure == "hp" & value > 100 | (.$measure == "cyl" & value == 6) ~ "high",
+        .$measure == "hp" & value < 100 | (.$measure == "cyl" & value == 6) ~ "medium",
+        .$measure == "hp" & value > 50  | (.$measure == "cyl" & value == 6) ~ "high",
+        .$measure == "hp" & value < 50  | (.$measure == "cyl" & value == 6) ~ "medium",
+        
+        .$measure == "hp" & value > 200 | (.$measure == "carb" & value >  4) ~ "high",
+        .$measure == "hp" & value < 200 | (.$measure == "carb" & value <= 4) ~ "medium",
+        .$measure == "hp" & value > 100 | (.$measure == "carb" & value >  2.8) ~ "high",
+        .$measure == "hp" & value < 100 | (.$measure == "carb" & value <= 2.8) ~ "medium",
+        .$measure == "hp" & value > 50  | (.$measure == "carb" & value > 2) ~ "high",
+        .$measure == "hp" & value < 50  | (.$measure == "carb" & value <= 2) ~ "medium",
+        TRUE ~ "low"
+    )) 
+```
+
+# Sidebar {.sidebar data-width="350"}
+
+```{r}
+selectInput("brand", "Brand of the car", 
+            choices = unique(mtcars_tidy$brand))
+
+renderUI({
+    selectInput("model", "Car model",
+                choices = mtcars_tidy$model[mtcars_tidy$brand == levels(mtcars_tidy$brand)[1]])
+})
+
+br()
+
+observe({
+    brand <- input$brand
+    updateSelectInput(session, "model", 
+                      choices = mtcars_tidy$model[mtcars_tidy$brand == brand])
+})    
+
+
+# when switching the brand of the car, input$brand this error pops up:
+# Error in : Faceting variables must have at least one value
+```
+
+
+# Main
+
+##
+
+### Plot power ranking for each measure
+
+```{r}
+nameorder <- make.unique(mtcars_tidy$measure[order(mtcars_tidy$power, mtcars_tidy$ranking)])
+mtcars_tidy$measure <- factor(mtcars_tidy$measure, levels=nameorder, 
+                                   ordered = TRUE)
+
+dataset <- reactive({
+    subset(mtcars_tidy, brand == input$brand & model == input$model) 
+})
+
+
+renderPlot({
+    ggplot(dataset(), aes(x = ranking, y = measure)) +
+        geom_segment(aes(yend = measure), xend=0, color = "grey50") +
+        geom_point(size = 3, aes(colour = power)) +
+        scale_colour_brewer(palette="Set1", limits = c("high","medium", "low")) +
+        theme_bw() +
+        theme(panel.grid.major.y = element_blank()) +   # No horizontal grid lines
+        facet_grid(power ~ ., scales="free_y", space="free_y") +
+        ggtitle(paste0("Brand: ", input$brand, ", Model: " , input$model))
+})    
+```
+
+
+
+
+
+
+
