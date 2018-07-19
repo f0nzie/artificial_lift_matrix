@@ -23,7 +23,7 @@ library(tidyr)
 library(ggplot2)
 
 
-xls_file <- "Artificial Lift Matrix for Commercial Production Systems (CPS)14Aug062.xlsx"
+xls_file <- "Artificial Lift Matrix.xlsx"
 
 al_matrix <- read_excel(path = file.path('inst/extdata', xls_file), 
                         skip = 4, range = "C5:P63") %>% 
@@ -43,7 +43,7 @@ al_matrix_tidy <- al_matrix %>%
     mutate(relevance = as.factor(relevance)) %>% 
     mutate(ranking = as.factor(ranking))
 
-# write_xlsx(al_matrix_tidy, path = file.path('inst/extdata', "al_matrix_tidy.xlsx"))
+write_xlsx(al_matrix_tidy, path = file.path('inst/extdata', "al_matrix_tidy.xlsx"))
 al_matrix_tidy_orig <- al_matrix_tidy
 ```
 
@@ -144,7 +144,7 @@ shiny::renderPlot({
     p <- p + ggtitle(paste0("by ", input$design_aspect, " when " , input$value))
     # facets <- paste(dataset()$relevance, '~ .')
     # if (facets != '. ~ .')
-    p <- p + facet_grid(relevance ~ ., scales="free_y", space = "free_y")
+    p <- p + facet_wrap(relevance ~ .)
     print(p)
 })
 ```
