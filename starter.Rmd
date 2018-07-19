@@ -142,7 +142,7 @@ ggplot(df, aes(x = ranking, y = al_method)) +
     geom_point(size = 3, aes(colour = relevance)) +
     scale_colour_brewer(palette="Set1", limits=c("specialty","low", "high")) +
     theme_bw() +
-    theme(panel.grid.major.y = element_blank()) +   # No horizontal grid lines
+    theme(panel.grid.major.y = element_blank()) + 
     facet_grid(relevance ~ ., scales="free_y", space="free_y")
 ```
 
