@@ -1,8 +1,9 @@
 ---
-title: "Artificial Lift selection tool v0.1.0"
+title: "Artificial Lift Selection Tool v0.1.0"
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
+    source_code: embed
 runtime: shiny    
 ---
 
