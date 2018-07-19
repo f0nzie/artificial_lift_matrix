@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "Artificial Lift selection"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
@@ -40,7 +40,7 @@ al_matrix_tidy <- al_matrix %>%
     mutate(relevance = as.factor(relevance)) %>% 
     mutate(ranking = as.factor(ranking))
 
-write_xlsx(al_matrix_tidy, path = file.path('inst/extdata', "al_matrix_tidy.xlsx"))
+# write_xlsx(al_matrix_tidy, path = file.path('inst/extdata', "al_matrix_tidy.xlsx"))
 al_matrix_tidy_orig <- al_matrix_tidy
 ```
 
@@ -59,13 +59,13 @@ selectInput("design_aspect", "Design Aspect of the AL",
 # })
 
 renderUI({
-selectInput("value", "Value of the Design Aspect to evaluate",
-            choices = al_matrix_tidy$Value[al_matrix_tidy$design_aspect == levels(al_matrix_tidy$design_aspect)[1]])
+    selectInput("value", "Value of the Design Aspect to evaluate",
+                choices = al_matrix_tidy$Value[al_matrix_tidy$design_aspect == levels(al_matrix_tidy$design_aspect)[1]])
 })
 
 observe({
     aspect <- input$design_aspect
-    updateSelectInput("value", 
+    updateSelectInput(session, "value", 
                       choices = al_matrix_tidy$Value[al_matrix_tidy$design_aspect == aspect])
 })    
 ```
@@ -73,9 +73,10 @@ observe({
 
 ## 
 
-### Plot
+### Plot by Design Aspect
 
 ```{r warning=FALSE, message=FALSE, error=FALSE}
+
 al_matrix_tidy <- al_matrix_tidy_orig
 
 nameorder <- make.unique(al_matrix_tidy$al_method[order(al_matrix_tidy$relevance, al_matrix_tidy$ranking)])
@@ -83,8 +84,6 @@ nameorder <- make.unique(al_matrix_tidy$al_method[order(al_matrix_tidy$relevance
 al_matrix_tidy$al_method <- factor(al_matrix_tidy$al_method, levels=nameorder)
 
 shiny::renderPlot({
-    # .design_aspect <- input$design_aspect
-    # .Value <- input$value
     
     df <- subset(al_matrix_tidy, 
                  design_aspect == input$design_aspect & Value == input$value )
