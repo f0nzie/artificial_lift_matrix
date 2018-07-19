@@ -1,10 +1,12 @@
 ---
 title: "Artificial Lift Selection Tool v0.1.0"
-output: 
+resource_files:
+- inst/extdata/Artificial Lift Matrix for Commercial Production Systems (CPS)14Aug062.xlsx
+runtime: shiny
+output:
   flexdashboard::flex_dashboard:
     orientation: rows
     source_code: embed
-runtime: shiny    
 ---
 
 ```{r setup, include=FALSE}
