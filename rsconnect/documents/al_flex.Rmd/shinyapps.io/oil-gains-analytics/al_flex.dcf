@@ -1,0 +1,13 @@
+name: al_flex
+title: al_flex
+username:
+account: oil-gains-analytics
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 383767
+bundleId: 1489090
+url: https://oil-gains-analytics.shinyapps.io/al_flex/
+when: 1532005873.43364
+asMultiple: FALSE
+asStatic: FALSE
+additionalFiles: inst/extdata/Artificial Lift Matrix for Commercial Production Systems (CPS)14Aug062.xlsx
