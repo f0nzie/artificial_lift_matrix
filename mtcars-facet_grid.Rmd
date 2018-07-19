@@ -1,0 +1,102 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+mtcars
+```
+
+```{r}
+    mutate(power = case_when(
+        .$cyl == 8 & .$hp >= 200 ~ "high",
+        .$cyl == 6 & .$hp >= 100 ~ "medium",
+        .$cyl == 4 & .$hp < 100 ~ "low"
+        
+    ))
+
+
+    mutate(power = case_when(
+        (.$measure == "cyl" & .$value == 8) & (.$measure == "hp" & .$value >= 8) ~ "high"
+    )) %>% 
+```
+
+
+```{r rows.print = 25}
+library(dplyr)
+library(ggplot2)
+
+mtcars_tidy <- mtcars %>% 
+    tibble::rownames_to_column() %>% 
+    rename(model = rowname) %>% 
+    mutate(brand = gsub( " .*$", "", model )) %>% 
+    mutate(model = model) %>% 
+    # mutate(power = as.factor(case_when(
+    #     .$cyl == 8 | .$hp >= 200 & .$disp > 150 ~ "high",
+    #     .$cyl == 8 | .$hp >= 200 & .$disp < 150 ~ "medium",
+    #     .$cyl == 6 | .$hp >= 100 ~ "medium",
+    #     .$cyl ='= 4 | .$hp < 100 ~ "low"
+    # 
+    # ))) %>% 
+    select(brand, model,  everything())  %>% 
+    tidyr::gather(key = 'measure', value = "value", mpg:carb) %>%
+    mutate(ranking = as.factor(sample(x = c(1, 2, 3), size = n(), replace = TRUE))) %>%
+    
+    
+    mutate(power = case_when(
+        .$measure == "hp" & value > 200 | (.$measure == "cyl" & value == 8) ~ "high",
+        .$measure == "hp" & value < 200 | (.$measure == "cyl" & value == 8) ~ "medium",
+        .$measure == "hp" & value > 100 | (.$measure == "cyl" & value == 6) ~ "high",
+        .$measure == "hp" & value < 100 | (.$measure == "cyl" & value == 6) ~ "medium",
+        .$measure == "hp" & value > 50  | (.$measure == "cyl" & value == 6) ~ "high",
+        .$measure == "hp" & value < 50  | (.$measure == "cyl" & value == 6) ~ "medium",
+        
+        .$measure == "hp" & value > 200 | (.$measure == "carb" & value >  4) ~ "high",
+        .$measure == "hp" & value < 200 | (.$measure == "carb" & value <= 4) ~ "medium",
+        .$measure == "hp" & value > 100 | (.$measure == "carb" & value >  2.8) ~ "high",
+        .$measure == "hp" & value < 100 | (.$measure == "carb" & value <= 2.8) ~ "medium",
+        .$measure == "hp" & value > 50  | (.$measure == "carb" & value > 2) ~ "high",
+        .$measure == "hp" & value < 50  | (.$measure == "carb" & value <= 2) ~ "medium",
+        TRUE ~ "low"
+    )) %>% 
+    
+    # filter(model == "Merc 280") %>%
+    print
+
+mtcars_tidy_orig <- mtcars_tidy
+```
+
+```{r}
+mtcars_tidy <- mtcars_tidy_orig
+
+nameorder <- make.unique(mtcars_tidy$measure[order(mtcars_tidy$power, mtcars_tidy$ranking)])
+
+mtcars_tidy$measure <- factor(mtcars_tidy$measure, levels=nameorder, 
+                                   ordered = TRUE)
+
+.brand <- "Merc"
+.model <- "Merc 230"
+
+df <- subset(mtcars_tidy, brand == .brand & model == .model )
+
+ggplot(df, aes(x = ranking, y = measure)) +
+    geom_segment(aes(yend = measure), xend=0, color = "grey50") +
+    geom_point(size = 3, aes(colour = power)) +
+    scale_colour_brewer(palette="Set1", limits = c("high","medium", "low")) +
+    theme_bw() +
+    theme(panel.grid.major.y = element_blank()) +   # No horizontal grid lines
+    facet_grid(power ~ ., scales="free_y", space="free_y") +
+    ggtitle(paste0("Brand: ", .brand, ", Model: " , .model))
+```
+
+
+
+
+
+
+
+```{r}
+gsub( " .*$", "", rownames(mtcars) )
+```
+
