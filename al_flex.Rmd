@@ -1,9 +1,9 @@
 ---
-title: "Artificial Lift selection"
+title: "Artificial Lift Selection Tool v0.1.0"
 output: 
   flexdashboard::flex_dashboard:
-    orientation: columns
-    vertical_layout: fill
+    orientation: rows
+    source_code: embed
 runtime: shiny    
 ---
 
@@ -47,9 +47,6 @@ al_matrix_tidy_orig <- al_matrix_tidy
 
 # Sidebar {.sidebar data-width="350"}
 
-
-
-
 ```{r}
 selectInput("design_aspect", "Design Aspect of the AL", 
             choices = unique(al_matrix_tidy$design_aspect))
@@ -64,6 +61,8 @@ renderUI({
                 choices = al_matrix_tidy$Value[al_matrix_tidy$design_aspect == levels(al_matrix_tidy$design_aspect)[1]])
 })
 
+br()
+
 observe({
     aspect <- input$design_aspect
     updateSelectInput(session, "value", 
@@ -71,9 +70,51 @@ observe({
 })    
 ```
 
+
+**Info**
+
+This is a selector of Artificial Lift methods by various operational Design Aspects. It is not the intention of being a rigorous selection tool since the criteria values are limited in number. See for instance, `Casing Size` with only two values of **7"** and **9.625" and larger**, or the `Relative Intervention Frequency` with only one value.
+
+The selection tool may grow over time with feedback from the community of petroleum engineers that desire to bring this application to a new level of completeness.
+
+**What is Relevance**
+
+The meaning of Relevance here is the *popularity* or how much the Artificial Method is used in the industry where `high` should convey the understanding that the AL method is highly used, while `specialty` refers to niches areas of deployment.
+
+**Ranking**
+A higher value of the rankin means that the better the AL method will perform. The ranking number go from `1` (lower performance) through `3` (highest).
+
+
+
 # Artificial Lift Matrix
 
 ## 
+
+### AL Design Aspects {.value-box}
+
+```{r}
+renderValueBox({
+    valueBox(length(unique(al_matrix_tidy$design_aspect)))
+})
+```
+
+### AL Methods {.value-box}
+
+```{r}
+renderValueBox({
+    valueBox(length(unique(al_matrix_tidy$al_method)))
+})
+```
+
+### Evaluation Criteria  {.value-box}
+
+```{r}
+renderValueBox({
+    valueBox(length(unique(al_matrix_tidy$Value)))
+})
+```
+
+## Column
 
 ### Plot by Design Aspect
 
@@ -85,26 +126,31 @@ nameorder <- make.unique(al_matrix_tidy$al_method[order(al_matrix_tidy$relevance
     
 al_matrix_tidy$al_method <- factor(al_matrix_tidy$al_method, levels=nameorder)
 
+dataset <- reactive({
+    subset(al_matrix_tidy, 
+         design_aspect == input$design_aspect & Value == input$value )    
+})
+
+
 shiny::renderPlot({
-    
-    df <- subset(al_matrix_tidy, 
-                 design_aspect == input$design_aspect & Value == input$value )
-    
-    ggplot(df, aes(x = ranking, y = al_method)) +
-        geom_segment(aes(yend = al_method), xend = 0, color = "grey50") +
-        geom_point(size = 3, aes(colour = relevance)) +
-        scale_colour_brewer(palette="Set1", limits=c("specialty","low", "high")) +
-        theme_bw() +
-        theme(panel.grid.major.y = element_blank()) +   # No horizontal grid lines
-        facet_grid(relevance ~ ., scales="free_y") +
-        ggtitle(paste0("by ", input$design_aspect, " when " , input$value))
-    
+    p <- ggplot(dataset(), aes(x = ranking, y = al_method)) 
+    p <- p + geom_segment(aes(yend = al_method), xend = 0, color = "grey50") 
+    p <- p + geom_point(size = 3, aes(colour = relevance))
+    p <- p + scale_colour_brewer(palette="Set1", limits=c("specialty","low", "high")) 
+    p <- p + theme_bw()
+    p <- p + theme(panel.grid.major.y = element_blank())  # No horizontal grid lines
+    p <- p + ggtitle(paste0("by ", input$design_aspect, " when " , input$value))
+    # facets <- paste(dataset()$relevance, '~ .')
+    # if (facets != '. ~ .')
+    p <- p + facet_grid(relevance ~ ., scales="free_y", space = "free_y")
+    print(p)
 })
 ```
 
-# Table results
 
-## Row
+# Results on selection
+
+##  {data-orientation=rows}
 
 ### Table by Design Aspects
 
@@ -114,6 +160,8 @@ renderTable({
              design_aspect == input$design_aspect & Value == input$value )
 })
 ```
+
+##  {data-orientation=rows}
 
 ### Dynamic table
 
