@@ -135,17 +135,24 @@ dataset <- reactive({
 
 
 shiny::renderPlot({
-    p <- ggplot(dataset(), aes(x = ranking, y = al_method)) 
-    p <- p + geom_segment(aes(yend = al_method), xend = 0, color = "grey50") 
-    p <- p + geom_point(size = 3, aes(colour = relevance))
-    p <- p + scale_colour_brewer(palette="Set1", limits=c("specialty","low", "high")) 
-    p <- p + theme_bw()
-    p <- p + theme(panel.grid.major.y = element_blank())  # No horizontal grid lines
-    p <- p + ggtitle(paste0("by ", input$design_aspect, " when " , input$value))
-    # facets <- paste(dataset()$relevance, '~ .')
-    # if (facets != '. ~ .')
-    p <- p + facet_wrap(relevance ~ .)
-    print(p)
+    ggplot(dataset(), aes(x = ranking, y = al_method)) +
+        geom_segment(aes(yend = al_method), xend = 0, color = "grey50") +
+        geom_point(size = 3, aes(colour = relevance)) +
+        theme(axis.text.y = element_text(size=12, 
+                                         face="bold",
+                                         angle=0, hjust=1)) +
+        theme(axis.text.x = element_text(size=10, 
+                                         face="bold",
+                                         angle=0, hjust=1)) +
+    
+        scale_colour_brewer(palette="Set1", limits=c("specialty","low", "high")) +
+        # theme_bw() +
+        theme(panel.grid.major.y = element_blank()) + # No horizontal grid lines 
+        ggtitle(paste0("by ", input$design_aspect, " when " , input$value)) +
+
+        # facets <- paste(dataset()$relevance, '~ .')
+        # if (facets != '. ~ .')
+        facet_grid(relevance ~.)
 })
 ```
 
