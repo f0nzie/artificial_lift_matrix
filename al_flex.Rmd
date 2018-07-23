@@ -26,7 +26,7 @@ library(ggplot2)
 xls_file <- "Artificial Lift Matrix.xlsx"
 
 al_matrix <- read_excel(path = file.path('inst/extdata', xls_file), 
-                        skip = 4, range = "C5:P63") %>% 
+                        skip = 4, range = "C5:P62") %>% 
     rename(design_aspect = "Design Aspect")
 
 
@@ -202,3 +202,27 @@ renderDataTable({
     )
 })    
 ```
+
+# Design Aspects & Criteria
+
+##
+
+### Design Aspects
+
+```{r}
+renderTable({
+    al_matrix_tidy %>% 
+    select(design_aspect, Value) %>% 
+    group_by(design_aspect) %>% 
+    summarise(num_criteria = n_distinct(Value)) %>% 
+    arrange(design_aspect)
+})
+```
+
+
+### Criteria
+
+```{r}
+
+```
+
