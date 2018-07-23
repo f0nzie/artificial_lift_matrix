@@ -73,18 +73,19 @@ observe({
 ```
 
 
-**Info**
+**Instructions**
 
-This is a selector of Artificial Lift methods by various operational Design Aspects. It is not the intention of being a rigorous selection tool since the criteria values are limited in number. See for instance, `Casing Size` with only two values of **7"** and **9.625" and larger**, or the `Relative Intervention Frequency` with only one value.
+This is a selector of Artificial Lift methods by various operational **Design Aspects**. It is not the intention of being a rigorous selection tool since the criteria values are limited in number. These criteria values could grow over time though. See for instance, the ** design criteria** `Casing Size` with only two values of **7"** and **9.625" and larger**, or the `Relative Intervention Frequency` with only one value of `less than 1.5 per well/yr`.
 
 The selection tool may grow over time with feedback from the community of petroleum engineers that desire to bring this application to a new level of completeness.
 
 **What is Relevance**
 
-The meaning of Relevance here is the *popularity* or how much the Artificial Method is used in the industry where `high` should convey the understanding that the AL method is highly used, while `specialty` refers to niches areas of deployment.
+The meaning of Relevance here is the *popularity* or how much the *Artificial Method* is used in the industry where **low** is a low used AL method, while `high` should convey the understanding that the AL method is **highly used*, and `specialty` refers to niches areas of deployment.
 
 **Ranking**
-A higher value of the rankin means that the better the AL method will perform. The ranking number go from `1` (lower performance) through `3` (highest).
+
+A higher value of the ranking means that the better the AL method will perform. The ranking number go from `1` (lower performance) through `3` (highest). Higher is better.
 
 
 
@@ -183,9 +184,17 @@ shiny::renderPlot({
 ### Table by Design Aspects
 
 ```{r}
-renderTable({
-    subset(al_matrix_tidy, 
-             design_aspect == input$design_aspect & Value == input$value )
+renderDataTable({
+  by_design_aspect <- subset(al_matrix_tidy, 
+               design_aspect == input$design_aspect & Value == input$value )
+  datatable(by_design_aspect, rownames = FALSE,
+      extensions = "Buttons", 
+      options = list(
+        dom ="Bfrtip",
+        buttons = c("copy", "csv", "excel", "pdf", "print"),
+        pageLength = 15, scrollY = "250px", paging = TRUE
+      )
+  )
 })
 ```
 
@@ -198,7 +207,7 @@ renderDataTable({
     DT::datatable(subset(al_matrix_tidy, 
                  design_aspect == input$design_aspect & Value == input$value ),
         filter = "top",
-        options = list(pageLength = 20, scrollY = "200px", paging = FALSE)
+        options = list(pageLength = 5, scrollY = "250px", paging = FALSE)
     )
 })    
 ```
@@ -210,19 +219,35 @@ renderDataTable({
 ### Design Aspects
 
 ```{r}
-renderTable({
+design_aspects_count_criteria <- 
     al_matrix_tidy %>% 
     select(design_aspect, Value) %>% 
     group_by(design_aspect) %>% 
     summarise(num_criteria = n_distinct(Value)) %>% 
     arrange(design_aspect)
-})
+
+datatable(
+    design_aspects_count_criteria, rownames = FALSE,
+    extensions = "Buttons", options = list(
+    dom ="Bfrtip",
+    buttons = c("copy", "csv", "excel", "pdf", "print")
+    , pageLength = 20
+    )
+)
 ```
 
 
 ### Criteria
 
 ```{r}
-
+datatable(
+    al_matrix %>% 
+    select(design_aspect, Value), rownames = FALSE,
+  extensions = "Buttons", options = list(
+    dom ="Bfrtip",
+    buttons = c("copy", "csv", "excel", "pdf", "print")
+    , pageLength = 20
+    )
+)
 ```
 
