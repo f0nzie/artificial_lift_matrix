@@ -1,3 +1,5 @@
+# 20180722 v 0.1.2 (hotfix)
+* change version number at the dashboard
 
 # 20180722 v 0.1.1
 * Increase size of fonts on the AL methods in y axis.

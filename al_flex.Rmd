@@ -1,7 +1,8 @@
 ---
-title: "Artificial Lift Selection Tool v0.1.0"
+title: "Artificial Lift Selection Tool v0.1.2"
 resource_files:
 - inst/extdata/Artificial Lift Matrix for Commercial Production Systems (CPS)14Aug062.xlsx
+- inst/extdata/Artificial Lift Matrix.xlsx
 runtime: shiny
 output:
   flexdashboard::flex_dashboard:
