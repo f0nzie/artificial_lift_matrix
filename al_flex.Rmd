@@ -43,7 +43,7 @@ al_matrix_tidy <- al_matrix %>%
     mutate(relevance = as.factor(relevance)) %>% 
     mutate(ranking = as.factor(ranking))
 
-write_xlsx(al_matrix_tidy, path = file.path('inst/extdata', "al_matrix_tidy.xlsx"))
+# write_xlsx(al_matrix_tidy, path = file.path('inst/extdata', "al_matrix_tidy.xlsx"))
 al_matrix_tidy_orig <- al_matrix_tidy
 ```
 
