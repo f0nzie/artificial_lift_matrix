@@ -168,3 +168,14 @@ ggplot(al_matrix_tidy, aes(x = Variable, y = ranking)) +
 
 
 HGP: http://www.alrdc.com/technicallibrary/ArticleDetails.aspx?ArticleId=1083
+
+
+
+```{r}
+al_matrix_tidy %>% 
+    select(design_aspect, Value) %>% 
+    group_by(design_aspect) %>% 
+    summarise(num_criteria = n_distinct(Value)) %>% 
+    arrange(design_aspect)
+```
+
