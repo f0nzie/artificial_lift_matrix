@@ -81,7 +81,11 @@ dataset <- reactive({
 })
 
 
+
 renderPlot({
+  # fixed with SO feedback
+  # https://stackoverflow.com/questions/51427189/facet-grid-in-shiny-flexdashboard-giving-error-faceting-variables-must-have-at
+    req(nrow(dataset()) > 0)
     ggplot(dataset(), aes(x = ranking, y = measure)) +
         geom_segment(aes(yend = measure), xend=0, color = "grey50") +
         geom_point(size = 3, aes(colour = power)) +

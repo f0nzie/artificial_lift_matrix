@@ -1,0 +1,58 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+mtcars
+```
+
+
+
+```{r rows.print = 25}
+library(dplyr)
+library(ggplot2)
+
+mtcars_tidy <- mtcars %>% 
+    tibble::rownames_to_column() %>% 
+    rename(model = rowname) %>% 
+    mutate(brand = gsub( " .*$", "", model )) %>% 
+    mutate(model = model) %>% 
+    select(brand, model,  everything())  %>% 
+    tidyr::gather(key = 'measure', value = "value", mpg:carb) %>%
+    mutate(ranking = as.factor(sample(x = c(1, 2, 3), size = n(), replace = TRUE))) %>%
+    
+    mutate(power = case_when(
+        .$measure == "hp" & value > 200 | (.$measure == "cyl" & value == 8) ~ "high",
+        .$measure == "hp" & value < 200 | (.$measure == "cyl" & value == 8) ~ "medium",
+        .$measure == "hp" & value > 100 | (.$measure == "cyl" & value == 6) ~ "high",
+        .$measure == "hp" & value < 100 | (.$measure == "cyl" & value == 6) ~ "medium",
+        .$measure == "hp" & value > 50  | (.$measure == "cyl" & value == 6) ~ "high",
+        .$measure == "hp" & value < 50  | (.$measure == "cyl" & value == 6) ~ "medium",
+        
+        .$measure == "hp" & value > 200 | (.$measure == "carb" & value >  4) ~ "high",
+        .$measure == "hp" & value < 200 | (.$measure == "carb" & value <= 4) ~ "medium",
+        .$measure == "hp" & value > 100 | (.$measure == "carb" & value >  2.8) ~ "high",
+        .$measure == "hp" & value < 100 | (.$measure == "carb" & value <= 2.8) ~ "medium",
+        .$measure == "hp" & value > 50  | (.$measure == "carb" & value > 2) ~ "high",
+        .$measure == "hp" & value < 50  | (.$measure == "carb" & value <= 2) ~ "medium",
+        TRUE ~ "low"
+    )) 
+
+mtcars_tidy
+```
+
+
+```{r}
+# extract the brand from the model
+mtcars %>% 
+    tibble::rownames_to_column() %>% 
+    rename(model = rowname) %>% 
+    mutate(brand = gsub( " .*$", "", model )) %>% 
+    select(model, brand, everything())
+
+```
+
