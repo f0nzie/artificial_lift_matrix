@@ -137,6 +137,7 @@ dataset <- reactive({
 
 
 shiny::renderPlot({
+  req(nrow(dataset()) > 0)
   df <- dataset()
   ggplot(df, aes(x = ranking, y = al_method)) +
       geom_segment(aes(yend=al_method), xend=0, color = "grey50") +
