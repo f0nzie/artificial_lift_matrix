@@ -13,17 +13,15 @@ output:
 ```{r setup, include=FALSE}
 library(flexdashboard)
 library(DT)
-```
-
-
-```{r rows.print=25}
 library(readxl)
 library(writexl)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+```
 
 
+```{r rows.print=25}
 xls_file <- "Artificial Lift Matrix.xlsx"
 
 al_matrix <- read_excel(path = file.path('inst/extdata', xls_file), 
